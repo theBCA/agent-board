@@ -1,0 +1,140 @@
+{
+  "meta": {
+    "title": "Who is doing what",
+    "plain": "Redesigning the shop's checkout, split between three Claude sessions and Codex."
+  },
+  "agents": {
+    "lead": {
+      "name": "shop-lead",
+      "label": "Claude lead",
+      "title": "Checkout redesign plan",
+      "kind": "claude",
+      "role": "coordinator",
+      "state": "working",
+      "plain": "Keeping this board up to date and passing questions between the helpers.",
+      "n": 0,
+      "minutes_ago": 1
+    },
+    "a1": {
+      "name": "shop-a1",
+      "label": "Claude a1",
+      "title": "New payment form",
+      "kind": "claude",
+      "role": "payment screens",
+      "state": "working",
+      "plain": "Making the card form show mistakes as you type instead of after you press Pay.",
+      "n": 1,
+      "minutes_ago": 3
+    },
+    "b2": {
+      "name": "shop-b2",
+      "label": "Claude b2",
+      "title": "Order emails and receipts",
+      "kind": "claude",
+      "role": "emails",
+      "state": "waiting",
+      "plain": "Receipt emails are ready; waiting for you to pick which logo goes in the header.",
+      "n": 2,
+      "minutes_ago": 29
+    },
+    "c3": {
+      "name": "shop-c3",
+      "label": "Claude c3",
+      "title": "Checkout speed",
+      "kind": "claude",
+      "role": "speed and tests",
+      "state": "working",
+      "plain": "Measuring how long each checkout step takes on a slow phone connection.",
+      "n": 3,
+      "minutes_ago": 71
+    },
+    "codex": {
+      "name": "Codex",
+      "label": "Codex",
+      "kind": "codex",
+      "role": "small fixes",
+      "state": "working",
+      "plain": "Fixing the address form so it accepts apartment numbers.",
+      "n": 4,
+      "minutes_ago": 21
+    },
+    "alex": {
+      "name": "Alex",
+      "label": "Alex",
+      "kind": "human",
+      "state": "waiting",
+      "asks": [
+        "Pick the logo for the receipt email header (b2 is waiting on this).",
+        "Say whether we keep PayPal on the first checkout screen."
+      ],
+      "minutes_ago": 29
+    }
+  },
+  "tasks": {
+    "t1": {
+      "plain": "Card form that catches mistakes early",
+      "owner": "a1",
+      "status": "doing",
+      "progress": 60,
+      "n": 1,
+      "minutes_ago": 3
+    },
+    "t2": {
+      "plain": "One-page checkout on phones",
+      "owner": "a1",
+      "status": "todo",
+      "progress": 0,
+      "n": 2,
+      "minutes_ago": 120
+    },
+    "t3": {
+      "plain": "Clearer receipt emails",
+      "owner": "b2",
+      "status": "blocked",
+      "progress": 80,
+      "blocker": "Waiting for the logo choice",
+      "n": 3,
+      "minutes_ago": 29
+    },
+    "t4": {
+      "plain": "Order-shipped email",
+      "owner": "b2",
+      "status": "done",
+      "progress": 100,
+      "n": 4,
+      "minutes_ago": 56
+    },
+    "t5": {
+      "plain": "Checkout under 3 seconds on slow phones",
+      "owner": "c3",
+      "status": "doing",
+      "progress": 35,
+      "n": 5,
+      "minutes_ago": 71
+    },
+    "t6": {
+      "plain": "Tests for every payment method",
+      "owner": "c3",
+      "status": "review",
+      "progress": 90,
+      "n": 6,
+      "minutes_ago": 81
+    },
+    "t7": {
+      "plain": "Address form accepts apartment numbers",
+      "owner": "codex",
+      "status": "doing",
+      "progress": 50,
+      "n": 7,
+      "minutes_ago": 21
+    },
+    "t8": {
+      "plain": "Remove the old checkout pages",
+      "owner": "codex",
+      "status": "todo",
+      "progress": 0,
+      "n": 8,
+      "minutes_ago": 120
+    }
+  }
+}

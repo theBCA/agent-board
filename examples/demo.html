@@ -1,0 +1,366 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body{margin:0}</style>
+<title>Agent Board demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500&display=swap">
+<style>
+/* Layout: shadcn-style dashboard. Top bar, four stat cards, an attention alert,
+   then tabs: one card per helper, or one table of every job. Tokens follow shadcn's zinc theme. */
+:root {
+  --background: #fafafa;
+  --card: #ffffff;
+  --foreground: #09090b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --border: #e4e4e7;
+  --ring: #a1a1aa;
+  --primary: #18181b;
+  --primary-foreground: #fafafa;
+  --green: #059669;
+  --blue: #2563eb;
+  --amber: #d97706;
+  --red: #dc2626;
+  --zinc: #71717a;
+  --av-bg-l: 93%;
+  --av-fg-l: 34%;
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(9, 9, 11, .05);
+  --sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: #09090b; --card: #111113; --foreground: #fafafa; --muted: #1c1c1f; --muted-foreground: #a1a1aa;
+    --border: #27272a; --ring: #52525b; --primary: #fafafa; --primary-foreground: #18181b;
+    --green: #34d399; --blue: #60a5fa; --amber: #fbbf24; --red: #f87171; --zinc: #a1a1aa;
+    --av-bg-l: 20%; --av-fg-l: 76%; --shadow: none; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --background: #09090b; --card: #111113; --foreground: #fafafa; --muted: #1c1c1f; --muted-foreground: #a1a1aa;
+  --border: #27272a; --ring: #52525b; --primary: #fafafa; --primary-foreground: #18181b;
+  --green: #34d399; --blue: #60a5fa; --amber: #fbbf24; --red: #f87171; --zinc: #a1a1aa;
+  --av-bg-l: 20%; --av-fg-l: 76%; --shadow: none; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--background); color: var(--foreground); font: 14px/1.5 var(--sans); -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 0 56px; display: grid; gap: 20px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; letter-spacing: -.015em; }
+svg.i { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.muted { color: var(--muted-foreground); }
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+/* top bar */
+.topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; padding-block: 22px 4px; }
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.logo { width: 36px; height: 36px; border-radius: 9px; background: var(--primary); color: var(--primary-foreground); display: grid; place-items: center; flex: none; }
+.logo svg.i { width: 18px; height: 18px; }
+.brand h1 { font-size: 20px; font-weight: 600; }
+.brand p { margin: 0; font-size: 13px; color: var(--muted-foreground); max-width: 70ch; }
+.live { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted-foreground); }
+
+/* badge */
+.badge { display: inline-flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; white-space: nowrap;
+  color: var(--c); background: color-mix(in srgb, var(--c) 10%, transparent); border: 1px solid color-mix(in srgb, var(--c) 22%, transparent); }
+.badge svg.i { width: 13px; height: 13px; }
+.badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.badge.pulse .dot { animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .3; } }
+.spin { animation: spin 1.4s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* card */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); min-width: 0; }
+
+/* stats */
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 860px) { .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.stat { padding: 16px 18px; display: grid; gap: 6px; }
+.stat-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 500; color: var(--muted-foreground); }
+.stat-head svg.i { color: var(--c); }
+.stat-num { font-size: 28px; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat-num small { font-size: 15px; font-weight: 500; color: var(--muted-foreground); }
+.stat-foot { font-size: 12px; color: var(--muted-foreground); }
+
+/* progress */
+.progress { height: 6px; border-radius: 999px; background: var(--muted); overflow: hidden; }
+.progress > span { display: block; height: 100%; border-radius: inherit; background: var(--c, var(--primary)); transition: width .6s ease; }
+
+/* alert */
+.alert { display: grid; grid-template-columns: 18px 1fr; gap: 12px; padding: 14px 16px; border-radius: var(--radius);
+  border: 1px solid color-mix(in srgb, var(--amber) 35%, var(--border)); background: color-mix(in srgb, var(--amber) 7%, var(--card)); }
+.alert > svg.i { color: var(--amber); width: 18px; height: 18px; margin-top: 1px; }
+.alert h3 { font-size: 14px; font-weight: 600; }
+.alert ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 3px; color: var(--foreground); }
+
+/* tabs */
+.tabs-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.tabs-row h2 { font-size: 16px; font-weight: 600; }
+.tabs { display: inline-flex; padding: 3px; gap: 2px; border-radius: 8px; background: var(--muted); }
+.tabs button { border: 0; background: none; font: 500 13px var(--sans); color: var(--muted-foreground); padding: 5px 12px; border-radius: 6px; cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--card); color: var(--foreground); box-shadow: var(--shadow); }
+
+/* helper cards */
+.helpers { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; align-items: start; }
+.helper { display: grid; }
+.helper-head { padding: 16px 18px 12px; display: grid; gap: 10px; }
+.who { display: flex; align-items: center; gap: 12px; }
+.avatar { width: 38px; height: 38px; border-radius: 50%; flex: none; display: grid; place-items: center; font: 600 13px var(--sans);
+  background: hsl(var(--h) 60% var(--av-bg-l)); color: hsl(var(--h) 55% var(--av-fg-l)); }
+.avatar.sm { width: 24px; height: 24px; font-size: 10px; }
+.who-text { min-width: 0; flex: 1; }
+.who-text h3 { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+.who-text div { font-size: 12px; color: var(--muted-foreground); }
+.now { font-size: 13.5px; color: var(--foreground); overflow-wrap: anywhere; }
+.now b { font-weight: 500; color: var(--muted-foreground); }
+.sep { height: 1px; background: var(--border); }
+.jobs { list-style: none; margin: 0; padding: 6px 8px; display: grid; }
+.job { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; align-items: center; gap: 4px 10px; padding: 8px 10px; border-radius: 7px; }
+.job:hover { background: var(--muted); }
+.job svg.i { color: var(--c); }
+.job .name { font-size: 13.5px; overflow-wrap: anywhere; }
+.job .pct { font: 500 12px var(--mono); color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+.job .progress { grid-column: 2 / 4; height: 4px; }
+.helper-foot { padding: 10px 18px 14px; display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted-foreground); }
+.stale { color: var(--amber); font-weight: 500; }
+.none { padding: 14px 18px; font-size: 13px; color: var(--muted-foreground); }
+
+/* table */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 620px; }
+th { text-align: left; font-weight: 500; color: var(--muted-foreground); font-size: 12.5px; padding: 10px 16px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+td { padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child td { border-bottom: 0; }
+tbody tr:hover { background: var(--muted); }
+.cell-helper { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.cell-progress { display: flex; align-items: center; gap: 10px; min-width: 140px; }
+.cell-progress .progress { flex: 1; }
+
+.empty { padding: 28px; text-align: center; color: var(--muted-foreground); }
+@media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"><svg class="i" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div style="min-width:0">
+        <h1 id="title">Who is doing what</h1>
+        <p id="subtitle">Every helper on this plan, what they are doing, and what is waiting on you.</p>
+      </div>
+    </div>
+    <div class="live"><span id="live-badge"></span><span id="updated"></span></div>
+  </header>
+
+  <section class="stats" id="stats" aria-label="Summary"></section>
+  <section class="alert" id="alert" hidden role="note"></section>
+
+  <section style="display:grid;gap:14px">
+    <div class="tabs-row">
+      <h2 id="view-title">Helpers</h2>
+      <div class="tabs" role="tablist" aria-label="View">
+        <button type="button" role="tab" id="tab-helpers" aria-selected="true">By helper</button>
+        <button type="button" role="tab" id="tab-jobs" aria-selected="false">All jobs</button>
+      </div>
+    </div>
+    <div id="view"></div>
+  </section>
+</div>
+
+<script>
+window.BOARD_SNAPSHOT = {"meta":{"title":"Who is doing what","plain":"Redesigning the shop's checkout, split between three Claude sessions and Codex."},"agents":{"lead":{"name":"shop-lead","label":"Claude lead","title":"Checkout redesign plan","kind":"claude","role":"coordinator","state":"working","plain":"Keeping this board up to date and passing questions between the helpers.","n":0,"minutes_ago":1},"a1":{"name":"shop-a1","label":"Claude a1","title":"New payment form","kind":"claude","role":"payment screens","state":"working","plain":"Making the card form show mistakes as you type instead of after you press Pay.","n":1,"minutes_ago":3},"b2":{"name":"shop-b2","label":"Claude b2","title":"Order emails and receipts","kind":"claude","role":"emails","state":"waiting","plain":"Receipt emails are ready; waiting for you to pick which logo goes in the header.","n":2,"minutes_ago":29},"c3":{"name":"shop-c3","label":"Claude c3","title":"Checkout speed","kind":"claude","role":"speed and tests","state":"working","plain":"Measuring how long each checkout step takes on a slow phone connection.","n":3,"minutes_ago":71},"codex":{"name":"Codex","label":"Codex","kind":"codex","role":"small fixes","state":"working","plain":"Fixing the address form so it accepts apartment numbers.","n":4,"minutes_ago":21},"alex":{"name":"Alex","label":"Alex","kind":"human","state":"waiting","asks":["Pick the logo for the receipt email header (b2 is waiting on this).","Say whether we keep PayPal on the first checkout screen."],"minutes_ago":29}},"tasks":{"t1":{"plain":"Card form that catches mistakes early","owner":"a1","status":"doing","progress":60,"n":1,"minutes_ago":3},"t2":{"plain":"One-page checkout on phones","owner":"a1","status":"todo","progress":0,"n":2,"minutes_ago":120},"t3":{"plain":"Clearer receipt emails","owner":"b2","status":"blocked","progress":80,"blocker":"Waiting for the logo choice","n":3,"minutes_ago":29},"t4":{"plain":"Order-shipped email","owner":"b2","status":"done","progress":100,"n":4,"minutes_ago":56},"t5":{"plain":"Checkout under 3 seconds on slow phones","owner":"c3","status":"doing","progress":35,"n":5,"minutes_ago":71},"t6":{"plain":"Tests for every payment method","owner":"c3","status":"review","progress":90,"n":6,"minutes_ago":81},"t7":{"plain":"Address form accepts apartment numbers","owner":"codex","status":"doing","progress":50,"n":7,"minutes_ago":21},"t8":{"plain":"Remove the old checkout pages","owner":"codex","status":"todo","progress":0,"n":8,"minutes_ago":120}}};
+for (const col of ["agents", "tasks"]) for (const row of Object.values(window.BOARD_SNAPSHOT[col])) {
+  row.updated_at = new Date(Date.now() - row.minutes_ago * 60000).toISOString();
+}
+window.BOARD_SNAPSHOT.taken_at = new Date().toISOString();
+</script>
+<script>
+const ICON = {
+  done: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+  review: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/>',
+  doing: '<path d="M21 12a9 9 0 1 1-6.219-8.56"/>',
+  blocked: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  todo: '<circle cx="12" cy="12" r="10" stroke-dasharray="3.2 3.2"/>',
+  alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  bolt: '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>',
+};
+const JOB = {
+  done: { word: "Done", c: "var(--green)" },
+  review: { word: "Almost done", c: "var(--blue)" },
+  doing: { word: "Working on it", c: "var(--blue)" },
+  blocked: { word: "Waiting", c: "var(--amber)" },
+  todo: { word: "Not started", c: "var(--zinc)" },
+};
+const HELPER = {
+  working: { word: "Working", c: "var(--blue)", pulse: true },
+  waiting: { word: "Waiting", c: "var(--amber)" },
+  blocked: { word: "Stuck", c: "var(--red)" },
+  idle: { word: "Free", c: "var(--zinc)" },
+  offline: { word: "Offline", c: "var(--zinc)" },
+};
+const S = { meta: null, agents: new Map(), tasks: new Map(), connected: false, note: "", view: "helpers" };
+try { const v = localStorage.getItem("agent-board-view"); if (v === "helpers" || v === "jobs") S.view = v; } catch (e) {}
+
+function el(tag, attrs, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) if (v != null && v !== false) k === "class" ? (n.className = v) : n.setAttribute(k, v);
+  for (const c of kids.flat()) if (c != null && c !== false) n.append(c.nodeType ? c : String(c));
+  return n;
+}
+function icon(name, cls) {
+  const s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("class", "i" + (cls ? " " + cls : "")); s.setAttribute("aria-hidden", "true");
+  s.innerHTML = ICON[name]; return s;
+}
+function badge(meta, withIcon) {
+  return el("span", { class: "badge" + (meta.pulse ? " pulse" : ""), style: `--c:${meta.c}` },
+    withIcon ? icon(withIcon, withIcon === "doing" ? "spin" : "") : el("span", { class: "dot" }), meta.word);
+}
+function bar(p, c) { return el("div", { class: "progress", role: "progressbar", "aria-valuenow": p, "aria-valuemin": 0, "aria-valuemax": 100 }, el("span", { style: `width:${p}%;--c:${c}` })); }
+function hue(s) { let h = 0; for (const ch of String(s)) h = (h * 31 + ch.codePointAt(0)) % 360; return (h * 137) % 360; }
+function initials(a, id) { const n = String((a && (a.label || a.name)) || id).trim().split(/[-\s]+/).pop() || "?"; return n.slice(0, 2).toUpperCase(); }
+function avatar(id, sm) { const a = S.agents.get(id); return el("span", { class: "avatar" + (sm ? " sm" : ""), style: `--h:${hue(id)}`, "aria-hidden": "true" }, initials(a, id)); }
+function label(id) { const a = S.agents.get(id); return (a && (a.label || a.name)) || id || "Nobody yet"; }
+function ago(iso) {
+  const t = Date.parse(iso); if (!t) return "";
+  const m = Math.floor((Date.now() - t) / 60000);
+  if (m < 1) return "just now"; if (m < 60) return m + " min ago";
+  const h = Math.floor(m / 60); return h < 24 ? h + " h ago" : Math.floor(h / 24) + " days ago";
+}
+const st = (t) => (JOB[t.status] ? t.status : "todo");
+const pct = (t) => (t.status === "done" ? 100 : Math.max(0, Math.min(100, Math.round(Number(t.progress) || 0))));
+const STALE_MIN = 45;
+const stale = (a) => a.state === "working" && Date.parse(a.updated_at) && Date.now() - Date.parse(a.updated_at) > STALE_MIN * 60000;
+const kindWord =(k) => ({ claude: "Claude session", codex: "Codex", human: "Person" })[k] || "Helper";
+
+const ord = (x) => (Number.isFinite(Number(x.n)) && x.n !== "" && x.n != null ? Number(x.n) : 999);
+function tasksSorted() { return [...S.tasks.values()].sort((a, b) => ord(a) - ord(b)); }
+function helpersSorted() {
+  return [...S.agents.entries()].filter(([, a]) => a.kind !== "human").sort((a, b) => ord(a[1]) - ord(b[1]));
+}
+
+function renderTop() {
+  const m = S.meta || {};
+  document.getElementById("title").textContent = m.title || "Who is doing what";
+  if (m.subtitle_plain || m.plain) document.getElementById("subtitle").textContent = m.subtitle_plain || m.plain;
+  if (m.title) document.title = m.title;
+  const lb = document.getElementById("live-badge");
+  lb.replaceChildren(S.connected ? badge({ word: "Live", c: "var(--green)", pulse: true }) : badge({ word: S.note ? "Saved copy" : "Connecting", c: "var(--zinc)" }));
+  const last = [...S.tasks.values(), ...S.agents.values()].map((x) => Date.parse(x.updated_at) || 0).reduce((a, b) => Math.max(a, b), 0);
+  document.getElementById("updated").textContent = last ? "Last change " + ago(new Date(last).toISOString()) : (S.note || "");
+}
+
+function renderStats() {
+  const tasks = [...S.tasks.values()];
+  const n = (k) => tasks.filter((t) => st(t) === k).length;
+  const total = tasks.length;
+  const overall = total ? Math.round(tasks.reduce((s, t) => s + pct(t), 0) / total) : 0;
+  const stat = (title, ic, c, num, foot, extra) => el("div", { class: "card stat", style: `--c:${c}` },
+    el("div", { class: "stat-head" }, title, icon(ic, ic === "doing" ? "spin" : "")), num, extra, el("div", { class: "stat-foot" }, foot));
+  document.getElementById("stats").replaceChildren(
+    stat("Jobs done", "done", "var(--green)", el("div", { class: "stat-num" }, n("done"), el("small", {}, ` / ${total}`)),
+      `Everything together is about ${overall}% of the way`, bar(overall, "var(--green)")),
+    stat("Being worked on", "doing", "var(--blue)", el("div", { class: "stat-num" }, n("doing") + n("review")),
+      n("review") ? `${n("review")} of them almost done` : "Someone is on each of these"),
+    stat("Waiting", "blocked", "var(--amber)", el("div", { class: "stat-num" }, n("blocked")), "On a decision or on another job"),
+    stat("Not started", "todo", "var(--zinc)", el("div", { class: "stat-num" }, n("todo")), "Planned, nobody on them yet"));
+}
+
+function renderAlert() {
+  const box = document.getElementById("alert");
+  const human = [...S.agents.values()].find((a) => a.kind === "human" && Array.isArray(a.asks) && a.asks.length);
+  box.hidden = !human;
+  if (!human) return;
+  box.replaceChildren(icon("alert"), el("div", {},
+    el("h3", {}, `Needs your attention, ${human.label || human.name}`),
+    el("ul", {}, human.asks.map((x) => el("li", {}, x)))));
+}
+
+function renderHelpers() {
+  const tasks = tasksSorted();
+  const helpers = helpersSorted();
+  if (!helpers.length) return el("div", { class: "card empty" }, "Nobody is on the board yet.");
+  return el("div", { class: "helpers" }, helpers.map(([id, a]) => {
+    const mine = tasks.filter((t) => t.owner === id);
+    const state = HELPER[a.state] || HELPER.idle;
+    const done = mine.filter((t) => st(t) === "done").length;
+    return el("article", { class: "card helper" },
+      el("div", { class: "helper-head" },
+        el("div", { class: "who" }, avatar(id),
+          el("div", { class: "who-text" }, el("h3", {}, a.title || a.label || a.name || id),
+            el("div", {}, [kindWord(a.kind), a.title ? (a.label || a.name) : null, a.role].filter(Boolean).join(" · "))),
+          badge(state)),
+        el("div", { class: "now" }, el("b", {}, "Right now: "), a.plain || a.doing || "Nothing reported yet.")),
+      el("div", { class: "sep" }),
+      mine.length
+        ? el("ul", { class: "jobs" }, mine.map((t) => {
+            const j = JOB[st(t)];
+            return el("li", { class: "job", style: `--c:${j.c}`, title: j.word },
+              icon(st(t), st(t) === "doing" ? "spin" : ""),
+              el("span", { class: "name" }, t.plain || t.title || t.id),
+              el("span", { class: "pct" }, st(t) === "done" ? "Done" : pct(t) + "%"),
+              bar(pct(t), j.c));
+          }))
+        : el("div", { class: "none" }, "No jobs right now."),
+      el("div", { class: "helper-foot" },
+        el("span", {}, mine.length ? `${mine.length} job${mine.length > 1 ? "s" : ""} · ${done} done` : ""),
+        stale(a) ? el("span", { class: "stale" }, "No update for " + ago(a.updated_at).replace(" ago", ""))
+          : el("span", {}, a.updated_at ? "Updated " + ago(a.updated_at) : "")));
+  }));
+}
+
+function renderJobs() {
+  const tasks = tasksSorted();
+  if (!tasks.length) return el("div", { class: "card empty" }, "No jobs on the board yet.");
+  return el("div", { class: "card table-wrap" }, el("table", {},
+    el("thead", {}, el("tr", {}, el("th", {}, "Job"), el("th", {}, "Who"), el("th", {}, "Status"), el("th", {}, "Progress"))),
+    el("tbody", {}, tasks.map((t) => {
+      const j = JOB[st(t)];
+      return el("tr", {},
+        el("td", {}, t.plain || t.title || t.id),
+        el("td", {}, el("span", { class: "cell-helper", title: (S.agents.get(t.owner) || {}).title || null }, avatar(t.owner, true), label(t.owner))),
+        el("td", {}, badge(j, st(t))),
+        el("td", {}, el("div", { class: "cell-progress" }, bar(pct(t), j.c), el("span", { class: "muted", style: "font:500 12px var(--mono)" }, pct(t) + "%"))));
+    }))));
+}
+
+function renderView() {
+  document.getElementById("tab-helpers").setAttribute("aria-selected", String(S.view === "helpers"));
+  document.getElementById("tab-jobs").setAttribute("aria-selected", String(S.view === "jobs"));
+  document.getElementById("view-title").textContent = S.view === "helpers" ? "Helpers" : "All jobs";
+  document.getElementById("view").replaceChildren(S.view === "helpers" ? renderHelpers() : renderJobs());
+}
+
+function render() { renderTop(); renderStats(); renderAlert(); renderView(); }
+
+function setView(v) { S.view = v; try { localStorage.setItem("agent-board-view", v); } catch (e) {} renderView(); }
+document.getElementById("tab-helpers").addEventListener("click", () => setView("helpers"));
+document.getElementById("tab-jobs").addEventListener("click", () => setView("jobs"));
+
+render();
+setInterval(renderTop, 30000);
+
+(async () => {
+  const db = window.claude && window.claude.use ? await window.claude.use("db") : null;
+  if (!db) {
+    const snap = window.BOARD_SNAPSHOT;
+    if (snap) {
+      S.meta = snap.meta || null;
+      S.agents = new Map(Object.entries(snap.agents || {}));
+      S.tasks = new Map(Object.entries(snap.tasks || {}).map(([id, t]) => [id, { id, ...t }]));
+      S.note = "Saved " + (snap.taken_at ? new Date(snap.taken_at).toLocaleString() : "earlier");
+    } else {
+      S.note = "Open on claude.ai to see it live";
+    }
+    render();
+    return;
+  }
+  const fail = () => { S.connected = false; S.note = "Lost connection, reload the page"; render(); };
+  db.doc("meta/board").onSnapshot((s) => { S.meta = s.exists ? s.data() : null; S.connected = true; render(); }, fail);
+  db.collection("agents").onSnapshot((q) => { S.agents = new Map(q.docs.map((d) => [d.id, d.data()])); S.connected = true; render(); }, fail);
+  db.collection("tasks").onSnapshot((q) => { S.tasks = new Map(q.docs.map((d) => [d.id, { id: d.id, ...d.data() }])); S.connected = true; render(); }, fail);
+})();
+</script>
