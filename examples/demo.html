@@ -232,7 +232,7 @@ function ago(iso) {
 }
 const st = (t) => (JOB[t.status] ? t.status : "todo");
 const pct = (t) => (t.status === "done" ? 100 : Math.max(0, Math.min(100, Math.round(Number(t.progress) || 0))));
-const STALE_MIN = 45;
+const STALE_MIN = 15;
 const stale = (a) => a.state === "working" && Date.parse(a.updated_at) && Date.now() - Date.parse(a.updated_at) > STALE_MIN * 60000;
 const kindWord =(k) => ({ claude: "Claude session", codex: "Codex", human: "Person" })[k] || "Helper";
 

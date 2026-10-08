@@ -63,8 +63,9 @@ know the codebase.
    ## Agent Board
    A live board tracks who does what: <url>
    If you own or help on a job there, update your rows (agent-board skill,
-   "Helper") whenever your state changes: when you start, reach a milestone,
-   get blocked, need the user, or finish. Write `plain` in everyday words.
+   "Helper") at least every 5 minutes while you work, and right away when you
+   start, reach a milestone, get blocked, need the user, or finish. Write
+   `plain` in everyday words.
    ```
 5. **Invite every helper** with one `SendMessage` each, first line
    `Agent Board: please report your progress at <url>`, then: their agent id,
@@ -83,9 +84,12 @@ know the codebase.
 
 Load the tool once: `ToolSearch` with `select:ArtifactData`.
 
-Report at every state change: you start a job, reach a milestone, get
-blocked or unblocked, need the person, finish a job, or go idle. In ONE
-`ArtifactData` `batch`:
+Report at least every 5 minutes while you work, more often when you can,
+and right away at every state change: you start a job, reach a milestone,
+get blocked or unblocked, need the person, finish a job, or go idle. A
+5-minute report with no news still refreshes `plain`, `progress` and
+`updated_at`, so the person can see you are alive. In ONE `ArtifactData`
+`batch`:
 
 1. `update` `tasks/<job-id>`: `status`, `progress` (0-100), `next`,
    `blocker` (remove with `{"__delete__": true}`), `updated_at` (ISO time),
@@ -108,7 +112,8 @@ your own agent row and jobs you own or help on. Never delete rows.
 
 Status words on the page: `todo` Not started, `doing` Working on it, `review`
 Almost done, `blocked` Waiting, `done` Done. A helper whose `state` is
-`working` with no update for 45 minutes shows "No update for ...".
+`working` with no update for 15 minutes (three missed 5-minute reports)
+shows "No update for ...".
 
 ## Verify once
 

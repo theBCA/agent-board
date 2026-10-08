@@ -17,8 +17,8 @@ sample board.
 - **One card per helper**, headed by the title on its session tab, with a
   status badge, a "Right now:" sentence, and each of its jobs with a progress bar.
 - **All jobs:** one table of every job, who has it, its status and progress.
-- **Quiet helpers stand out:** a helper marked working that has not reported
-  for 45 minutes shows "No update for ...".
+- **Quiet helpers stand out:** helpers report at least every 5 minutes, so one
+  marked working that has not reported for 15 minutes shows "No update for ...".
 
 Everything on the page is written in everyday words. Commit hashes, ticket
 codes and file names stay in fields the page does not show, so the board
@@ -44,8 +44,9 @@ The skill has two roles:
   project's memory or `CLAUDE.local.md` so every session knows the board
   exists, and messages each helper. It also fills in rows for helpers that
   cannot write themselves, such as Codex, and keeps your list of decisions current.
-- **Helper:** any session working a job on the board. At every state change
-  (started, milestone, blocked, needs you, done) it updates its job rows and
+- **Helper:** any session working a job on the board. It reports at least
+  every 5 minutes while it works, and right away at every state change
+  (started, milestone, blocked, needs you, done), updating its job rows and
   its own card in one write.
 
 The full protocol, the data schema and the writing rules are in
