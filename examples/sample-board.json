@@ -6,7 +6,7 @@
   "agents": {
     "lead": {
       "name": "shop-lead",
-      "label": "Claude lead",
+      "label": "Max",
       "title": "Checkout redesign plan",
       "kind": "claude",
       "role": "coordinator",
@@ -17,7 +17,7 @@
     },
     "a1": {
       "name": "shop-a1",
-      "label": "Claude a1",
+      "label": "Alice",
       "title": "New payment form",
       "kind": "claude",
       "role": "payment screens",
@@ -28,7 +28,7 @@
     },
     "b2": {
       "name": "shop-b2",
-      "label": "Claude b2",
+      "label": "Bob",
       "title": "Order emails and receipts",
       "kind": "claude",
       "role": "emails",
@@ -39,7 +39,7 @@
     },
     "c3": {
       "name": "shop-c3",
-      "label": "Claude c3",
+      "label": "Chen",
       "title": "Checkout speed",
       "kind": "claude",
       "role": "speed and tests",

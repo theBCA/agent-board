@@ -47,8 +47,12 @@ know the codebase.
    `description`.
 2. **Find the helpers.** `ListAgents` gives the addresses.
    `python3 <skill dir>/scripts/session_titles.py --cwd <repo>` gives each
-   session's tab title (`title`, null when the session has none). Pick short
-   path-safe ids (the session name's last segment works: `b5`, `aa`). Add
+   session's tab title (`title`, null when the session has none) and its
+   `session_id`. Pick short path-safe ids (the session name's last segment
+   works: `b5`, `aa`). Give each helper a stable person name as its `label`
+   (Alice, Bob, ...) and a specialty as its `role`, unless the person already
+   has names for them, and store its `session_id`: the address `ListAgents`
+   shows changes when a session restarts, the session id does not. Add
    rows for non-Claude helpers (`kind: "codex"`) and for the person
    (`kind: "human"`, with `asks`). Add yourself, `role: "coordinator"`.
 3. **Seed** everything in one `ArtifactData` `batch` (schema below). Use
@@ -78,6 +82,11 @@ know the codebase.
    - When something starts or stops waiting on the person, update their `asks`.
    - Reassigning a job: change its `owner` and both helpers' `plain` in one batch.
    - A card marked "No update for ..." means that helper went quiet: ask it.
+   - A message that fails with "no agent named ..." means sessions restarted
+     under new addresses. Run `session_titles.py`, match each `session_id`,
+     update the rows' `name`, and resend. Names and ids on the board stay.
+   - Tell each helper its name and specialty once, and use the names when
+     talking to the person.
    - Hand the person the link once. Afterwards, say only what changed.
 
 ## Helper
@@ -107,7 +116,7 @@ your own agent row and jobs you own or help on. Never delete rows.
 | Document | Fields |
 |---|---|
 | `meta/board` | `title`, `plain` (subtitle in everyday words) |
-| `agents/<id>` | `name` (the address, e.g. `myrepo-b5`), `title` (tab title), `label` (short name, e.g. `Claude b5`), `kind` (`claude`/`codex`/`human`/`other`), `role` (a few everyday words), `state` (`working`/`waiting`/`blocked`/`idle`/`offline`), `plain`, `doing`, `asks` (person only: list of sentences), `n` (sort order), `updated_at` |
+| `agents/<id>` | `name` (the address, e.g. `myrepo-b5`), `title` (tab title), `label` (the stable name the person uses, e.g. `Bob`), `session_id` (survives restarts), `kind` (`claude`/`codex`/`human`/`other`), `role` (a few everyday words), `state` (`working`/`waiting`/`blocked`/`idle`/`offline`), `plain`, `doing`, `asks` (person only: list of sentences), `n` (sort order), `updated_at` |
 | `tasks/<id>` | `plain` (the job in everyday words, about 8 words), `title`, `detail`, `owner` (agent id), `helpers` (agent ids), `status` (`todo`/`doing`/`blocked`/`review`/`done`), `progress` (0-100), `next`, `blocker`, `n`, `updated_at`, `updated_by` |
 
 Status words on the page: `todo` Not started, `doing` Working on it, `review`
